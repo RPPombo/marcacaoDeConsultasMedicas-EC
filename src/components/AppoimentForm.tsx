@@ -3,7 +3,7 @@ import { TouchableOpacity } from 'react-native';
 import { Button, Input, Text } from 'react-native-elements';
 import styled from 'styled-components/native';
 import theme from '../styles/theme';
-import { Doctor } from '../types';
+import { Doctor } from '../types/doctors';
 
 const doctors: Doctor[] = [
     {

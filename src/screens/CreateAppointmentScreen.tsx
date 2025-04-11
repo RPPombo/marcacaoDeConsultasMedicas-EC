@@ -5,7 +5,7 @@ import styled from 'styled-components/native';
 import AppointmentForm from '../components/AppointmentForm';
 import { HeaderContainer, HeaderTitle } from '../components/Header';
 import theme from '../styles/theme';
-import { RootStackParamList } from '../types';
+import { RootStackParamList } from '../types/navigation';
 
 type CreateAppointmentScreenProps = {
     navigation: NativeStackNavigationProp<RootStackParamList, 'CreateAppointment'>;
