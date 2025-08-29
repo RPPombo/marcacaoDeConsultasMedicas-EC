@@ -3,7 +3,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authApiService } from '../services/authApi';
 import { apiClient } from '../services/api';
 import { User, LoginCredentials, RegisterData, AuthContextData } from '../types/auth';
-import { authService } from '../services/auth';
 
 // Chaves de armazenamento
 const STORAGE_KEYS = {
@@ -19,54 +18,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     loadStoredUser();
-    loadRegisteredUsers();
   }, []);
 
   const loadStoredUser = async () => {
     try {
-    const storedToken = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
-    const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER);
-    
-    if (storedToken && storedUser) {
-      // Configura o token no cliente da API  ← NOVO!
-      apiClient.setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-  } catch (error) {
-    console.error('Erro ao carregar usuário:', error);
-    // Se houver erro, limpa os dados armazenados  ← NOVO!
-    await AsyncStorage.removeItem(STORAGE_KEYS.USER);
-    await AsyncStorage.removeItem(STORAGE_KEYS.TOKEN);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const loadRegisteredUsers = async () => {
-    try {
-      await authService.loadRegisteredUsers();
+      // Carrega o token salvo
+      const storedToken = await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
+      const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+      
+      if (storedToken && storedUser) {
+        // Configura o token no cliente da API
+        apiClient.setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      }
     } catch (error) {
-      console.error('Erro ao carregar usuários registrados:', error);
+      console.error('Erro ao carregar usuário:', error);
+      // Se houver erro, limpa os dados armazenados
+      await AsyncStorage.removeItem(STORAGE_KEYS.USER);
+      await AsyncStorage.removeItem(STORAGE_KEYS.TOKEN);
+    } finally {
+      setLoading(false);
     }
   };
 
   const signIn = async (credentials: LoginCredentials) => {
-  try {
-    const response = await authApiService.signIn(credentials);  // ← Login real!
-    setUser(response.user);
-    
-    // Salva os dados no AsyncStorage para persistência
-    await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user));
-    await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, response.token);
-  } catch (error) {
-    throw error;
-  }
-};
+    try {
+      const response = await authApiService.signIn(credentials);
+      setUser(response.user);
+      
+      // Configura o token no cliente da API
+      apiClient.setToken(response.token);
+      
+      // Salva os dados no AsyncStorage para persistência
+      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user));
+      await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, response.token);
+    } catch (error) {
+      throw error;
+    }
+  };
 
   const register = async (data: RegisterData) => {
     try {
-      const response = await authService.register(data);
+      const response = await authApiService.register(data);
       setUser(response.user);
+      
+      // Configura o token no cliente da API
+      apiClient.setToken(response.token);
+      
+      // Salva os dados no AsyncStorage para persistência
       await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user));
       await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, response.token);
     } catch (error) {
@@ -76,8 +75,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      await authService.signOut();
+      await authApiService.signOut();
       setUser(null);
+      
+      // Remove os dados do AsyncStorage
       await AsyncStorage.removeItem(STORAGE_KEYS.USER);
       await AsyncStorage.removeItem(STORAGE_KEYS.TOKEN);
     } catch (error) {
